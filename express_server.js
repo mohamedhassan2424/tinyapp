@@ -6,13 +6,24 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+function generateRandomString(){
+    
+}
 app.set("view engine","ejs");
+app.use(express.urlencoded({ extended: true}));
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 app.get("/urls" , (req,res) => {
     const templateVars= {urls : urlDatabase};
     res.render("urls_index", templateVars)
+});
+app.get("/urls/new" , (req,res) => {
+    res.render("urls_new")
+});
+app.post("/urls" , (req,res) => {
+    console.log(req.body);
+    res.send("Okay Recieved");
 });
 
 app.get("/urls/:id" , (req,res) => {
