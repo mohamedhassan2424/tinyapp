@@ -1,4 +1,6 @@
 const express = require("express");
+const cookieParser = require('cookie-parser')
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -20,14 +22,14 @@ const urlDatabase = {
   
 
 };
-
+app.use(cookieParser());
 app.set("view engine","ejs");
 app.use(express.urlencoded({ extended: true}));
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 app.get("/urls" , (req,res) => {
-    const templateVars= {urls : urlDatabase};
+    const templateVars= {urls : urlDatabase, username : req.cookies["name"]};
     res.render("urls_index", templateVars)
 });
 app.get("/urls/new" , (req,res) => {
@@ -67,6 +69,18 @@ app.post("/urls/:id" , (req,res) => {
     const {newUrl}= req.body
     console.log(req.body);
     urlDatabase[id] = newUrl;
+    res.redirect("/urls");
+})
+app.post("/login" , (req,res) => {
+const {username}=req.body
+console.log(username);
+res.cookie("name", username );
+console.log(req.cookies["name"]);
+res.redirect("/urls")
+})
+app.post("/logout", (req,res) =>{
+    
+    res.clearCookie("name");
     res.redirect("/urls");
 })
 app.get("/hello", (req,res) => {
