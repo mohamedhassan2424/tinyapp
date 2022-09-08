@@ -1,3 +1,4 @@
+const bcrypt= require("bcryptjs")
 const express = require("express");
 const cookieParser = require("cookie-parser");
 
@@ -114,7 +115,7 @@ app.get("/u/:id", (req, res) => {
     if(!longUrl){
         res.send("The Short URL is not defined")
   }else {
-    res.redirect(longUrl);
+     res.redirect(longUrl);
   }
 });
 app.get("/urls/:id", (req, res) => {
@@ -156,6 +157,10 @@ app.get("/login", (req, res) => {
 });
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
+  //const userId= req.cookies["user_id"]
+  //console.log(userId)
+  //const hashedPasswordSaved =users[req.cookies["user_id"]].password
+ 
   if (email.length === 0) {
     return res.send("400 Status Code");
   }
@@ -166,22 +171,29 @@ app.post("/login", (req, res) => {
   if (!user) {
     return res.send("Staus Code 403. Email cannot be Found");
   }
-  if (user) {
+  /*if (user) {
     if (
-      password.toLowerCase() !== getUserByEmail(email).password.toLowerCase()
+        hashedPassword !== getUserByEmail(email).hashedPassword
     ) {
       return res.send("Staus Code 403. Password doesn't match");
     }
-  }
+  }*/
 
   //console.log(email);
   //console.log(password)
+
+ const checkingPassword = bcrypt.compareSync(password, user.password );
+ console.log(checkingPassword); 
+ if(checkingPassword){
   res.cookie("user_id", id);
-  //console.log(req.cookies["name"]);
+  res.redirect("/urls");
+  } ;
+  //console.log(req.cookies["name"])
+
 });
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+   res.redirect("/urls");
 });
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
@@ -206,19 +218,21 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   //const id = Math.random().toString(36).substring(2, 8);
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10); 
+  console.log(hashedPassword);
   if (email.length === 0) {
     return res.send("400 Status Code");
   }
-  if (password.length === 0) {
+  if (hashedPassword.length === 0) {
     return res.send("400 Status Code");
   }
   if (getUserByEmail(email)) {
     return res.send("Staus Code 400. Email already exist");
   }
   users[id] = {
-    id,
-    email,
-    password,
+    id: id,
+    email: email,
+    password : hashedPassword
   };
   res.cookie("user_id", id);
   //console.log(users);
