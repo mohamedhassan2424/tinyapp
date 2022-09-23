@@ -31,7 +31,7 @@ const users = {
 };
 //user and the URLDatabase are found above
 
-const id = Math.random().toString(36).substring(2, 8);
+//const id = Math.random().toString(36).substring(2, 8);
 // here is our generated 6 string letter and number
 //app.use(cookieParser());
 app.use(
@@ -44,22 +44,22 @@ app.use(
 app.set("view engine", "ejs"); // set it for all the path to be accessbily
 app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
   // sending a get request to our urls
   const storedUserID = req.session.user_id;
-
-  if (!storedUserID) {
+  const currentUser = users[storedUserID]
+  if (!currentUsers) {
     // chekcing to see if we are logged in. checkin our cookie
     return res.send("Suggest user to log in or register first");
   }
 
-  const longUrlOfUserId = urlsForUser(storedUserID,urlDatabase); // get the approaite URL for the approaite user
-  console.log("longURL" ,longUrlOfUserId )
+  const userURL = urlsForUser(storedUserID,urlDatabase); // get the approaite URL for the approaite user
+  console.log("longURL" , userURL)
   const templateVars = {
-    urls: longUrlOfUserId,
+    urls:userURL,
     users: users[storedUserID],
   };
   return res.render("urls_index", templateVars) ;
@@ -71,12 +71,13 @@ app.post("/urls", (req, res) => {
   //console.log(longUrlValue)
   //res.send("Okay Recieved");
   const storedUserID = req.session.user_id;
+  const currentUser = users[storedUserID]
   if (!storedUserID) {
-    res.send("User Cannot shorten the URL");
+     return res.send("User Cannot shorten the URL");
   }
-  if (storedUserID) {
+
     // checking to see if user is signed if it is than it will continue on
-    //const id = Math.random().toString(36).substring(2, 8);
+    const id = Math.random().toString(36).substring(2, 8);
     const longUrlValue = req.body.longURL ;
     urlDatabase[id] = {
         id : id,
@@ -85,11 +86,11 @@ app.post("/urls", (req, res) => {
     };
 
     res.redirect(`/urls/${id}`);
-  }
 });
 app.get("/urls/new", (req, res) => {
   // redirect to new page if this page url is met
   const storedUserID = req.session.user_id; // saving the cookie session here which is know encrpted
+  const currentUser = users[storedUserID]
   const templateVars = {
     urls: urlDatabase[id],
     users: users[storedUserID],
@@ -103,7 +104,11 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls/:id/delete", (req, res) => {
   // the delete url, which will delete certain url if need be so, if the id maches
+  const storedUserID = req.session.user_id;
   const { id } = req.params;
+  if (!storedUserID) {
+    return res.send("User Cannot shorten the URL");
+ }
   delete urlDatabase[id];
   res.redirect("/urls"); // redirecting to urls once complete
 });
@@ -120,17 +125,18 @@ app.get("/urls/:id", (req, res) => {
   const storedUserID = req.session.user_id;
 
   if (!storedUserID) {
-    return res.send("User is not Loged in");
+    return res.redirect("/login");
   }
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
-    users: users[storedUserID],
-  };
-  const existingURL = urlDatabase[storedUserID].longURL;
-  if (templateVars.longURL !== existingURL) {
+  
+  const existingURL = urlDatabase[storedUserID];
+  if (!existingURL || existingURL.userID !== storedUserID ) {
     return res.send("User does not own that URL");
   } else {
+    const templateVars = {
+      id: req.params.id,
+      longURL: urlDatabase[req.params.id].longURL,
+      users: users[storedUserID],
+    };
     return res.render("urls_show", templateVars);
   }
 });
@@ -232,7 +238,7 @@ app.post("/register", (req, res) => {
   if (email.length === 0) {
     return res.send("400 Status Code");
   }
-  if (hashedPassword.length === 0) {
+  if (password.length === 0) {
     return res.send("400 Status Code");
   }
   if (getUserByEmail(email, users)) {
@@ -247,7 +253,7 @@ app.post("/register", (req, res) => {
   req.session.user_id = id;
   //res.cookie("user_id", id);
   //console.log(res.cookie("user_id", id))
-  console.log(users);
+  console.log("USERS",users);
 
   res.redirect("/urls"); // after registering we redirect it back to the urls
 });
