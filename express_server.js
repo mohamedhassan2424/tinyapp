@@ -51,8 +51,7 @@ app.get("/urls", (req, res) => {
   // sending a get request to our urls
   const storedUserID = req.session.user_id;
   const currentUser = users[storedUserID]
-  if (!currentUsers) {
-    // chekcing to see if we are logged in. checkin our cookie
+  if (!currentUser) {
     return res.send("Suggest user to log in or register first");
   }
 
@@ -66,16 +65,11 @@ app.get("/urls", (req, res) => {
 });
 app.post("/urls", (req, res) => {
   // after the get request is a post is needed to configure the data on the webpage and send the approaite messages
-  //console.log(req.body);
-  //console.log(req.params.id
-  //console.log(longUrlValue)
-  //res.send("Okay Recieved");
   const storedUserID = req.session.user_id;
   const currentUser = users[storedUserID]
-  if (!storedUserID) {
+  if (!currentUser) {
      return res.send("User Cannot shorten the URL");
   }
-
     // checking to see if user is signed if it is than it will continue on
     const id = Math.random().toString(36).substring(2, 8);
     const longUrlValue = req.body.longURL ;
@@ -84,18 +78,18 @@ app.post("/urls", (req, res) => {
         longURL : longUrlValue,
         userID: storedUserID
     };
-
     res.redirect(`/urls/${id}`);
 });
 app.get("/urls/new", (req, res) => {
   // redirect to new page if this page url is met
+  const id = Math.random().toString(36).substring(2, 8);
   const storedUserID = req.session.user_id; // saving the cookie session here which is know encrpted
   const currentUser = users[storedUserID]
   const templateVars = {
     urls: urlDatabase[id],
     users: users[storedUserID],
   };
-  if (!storedUserID) {
+  if (!currentUser) {
     res.redirect("/login");
   } else {
     res.render("urls_new", templateVars); // rendering to the page for style and it can be seen in our templatevars ejs file
@@ -105,8 +99,9 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   // the delete url, which will delete certain url if need be so, if the id maches
   const storedUserID = req.session.user_id;
+  const currentUser = users[storedUserID]
   const { id } = req.params;
-  if (!storedUserID) {
+  if (!currentUser) {
     return res.send("User Cannot shorten the URL");
  }
   delete urlDatabase[id];
@@ -123,13 +118,13 @@ app.get("/u/:id", (req, res) => {
 });
 app.get("/urls/:id", (req, res) => {
   const storedUserID = req.session.user_id;
-
-  if (!storedUserID) {
+  const currentUser = users[storedUserID]  
+  if (!currentUser) {
     return res.redirect("/login");
   }
   
   const existingURL = urlDatabase[storedUserID];
-  if (!existingURL || existingURL.userID !== storedUserID ) {
+  if (existingURL ) {
     return res.send("User does not own that URL");
   } else {
     const templateVars = {
@@ -142,12 +137,12 @@ app.get("/urls/:id", (req, res) => {
 });
 app.post("/urls/:id", (req, res) => {
   const storedUserID = req.session.user_id;
-  if (!storedUserID) {
+  const currentUser = users[storedUserID]
+  if (!currentUser) {
     res.send("User Cannot shorten the URL");
   } else {
     const { id } = req.params;
     const { newUrl } = req.body;
-    //console.log(req.body);
     urlDatabase[id].longURL = newUrl;
     res.redirect("/urls");
   }
@@ -155,9 +150,9 @@ app.post("/urls/:id", (req, res) => {
 app.get("/login", (req, res) => {
   // the login in page is know created
   const storedUserID = req.session.user_id; // storing our cookie session
+  const currentUser = users[storedUserID]
   const templateVars = { users: users[storedUserID] }; //storing items in our object inroder to locate and track them
-  if (storedUserID) {
-    //checking to if the session exists
+  if (currentUser) { //checking to if the session exists
     res.redirect("/urls");
   } else {
     res.render("logInForm", templateVars); // renders the page to the log in form if not already registered
@@ -166,10 +161,6 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   // this is the part where the inputs for the login are stored and compared
   const { email, password } = req.body;
-  //const userId= req.cookies["user_id"]
-  //console.log(userId)
-  //const hashedPasswordSaved =users[req.cookies["user_id"]].password
-
   if (email.length === 0) {
     //checks these edge cases to see if it meets the criteria their are several more edge cases below
     return res.send("400 Status Code");
@@ -181,29 +172,15 @@ app.post("/login", (req, res) => {
   if (!user) {
     return res.send("Staus Code 403. Email cannot be Found");
   }
-  /*if (user) {
-    if (
-        hashedPassword !== getUserByEmail(email).hashedPassword
-    ) {
-      return res.send("Staus Code 403. Password doesn't match");
-    }
-  }*/
-
-  //console.log(email);
-  //console.log(password)
-
   const checkingPassword = bcrypt.compareSync(password, user.password); // compares the password to the encription key if true than save the cookie and than redirect to the urls
   console.log(checkingPassword);
   if (checkingPassword) {
     req.session.user_id = id;
-    //res.cookie("user_id", id);
     res.redirect("/urls");
   }
-  //console.log(req.cookies["name"])
 });
 app.post("/logout", (req, res) => {
   // the logout form, where it clears the cookies and in this case setting our user_id value to null basically like deleteing it
-
   req.session.user_id = null;
   res.redirect("/urls");
 });
@@ -217,12 +194,9 @@ app.get("/urls.json", (req, res) => {
 app.get("/register", (req, res) => {
   // creating the register and rendering it to the registration page we created
   const storedUserID = req.session.user_id;
+  const currentUser = users[storedUserID]
   const templateVars = { users: users[storedUserID] };
-
-  //const userVar = req.cookies["id"]
-  //console.log("userVar", userVar)
-  //console.log(req.cookies["user_id"])
-  if (storedUserID) {
+  if (currentUser) {
     res.redirect("/urls");
   } else {
     res.render("registrationPage", templateVars); // saving the page here
@@ -231,7 +205,7 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   // collecting and storing the information for the registation and as well encrpteding it
-  //const id = Math.random().toString(36).substring(2, 8);
+  const id = Math.random().toString(36).substring(2, 8);
   const { email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10); // encrypting it here
   console.log(hashedPassword);
@@ -251,13 +225,9 @@ app.post("/register", (req, res) => {
     password: hashedPassword,
   };
   req.session.user_id = id;
-  //res.cookie("user_id", id);
-  //console.log(res.cookie("user_id", id))
   console.log("USERS",users);
-
   res.redirect("/urls"); // after registering we redirect it back to the urls
 });
-
 app.listen(PORT, () => {
   // we always need to listen on the port value we assign above
   console.log(`Example app listening on port ${PORT}!`);
