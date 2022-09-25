@@ -18,17 +18,6 @@ const urlsForUser = function (id, database) {
   }
   return userURLS;
 } ;
-const shortUrl = function generateRandomString(stringSize) {
-  let optionalChracters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let inputString = "";
-  for (let i = 0; i < stringSize; i++) {
-    inputString += optionalChracters.charAt(
-      Math.floor(Math.random() * optionalChracters.length)
-    );
-    console.log(inputString) ;
-  }
-  //console.log(inputString)
-  return inputString;
-};
+
 
 module.exports = { getUserByEmail, urlsForUser, shortUrl };
