@@ -20,4 +20,4 @@ const urlsForUser = function (id, database) {
 } ;
 
 
-module.exports = { getUserByEmail, urlsForUser, shortUrl };
+module.exports = { getUserByEmail, urlsForUser};
