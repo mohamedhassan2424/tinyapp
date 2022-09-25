@@ -5,30 +5,10 @@ const cookieSession = require("cookie-session");
 const app = express();
 const PORT = 8080; // default port 8080
 const { getUserByEmail, urlsForUser } = require("./helpers");
+const  {urlDatabase} = require("./urlDatabase")
+const  {users} = require("./usersDatabase")
 // all the required functionnality for our webiste are added here including the port number
 
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-} ;
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
 //user and the URLDatabase are found above
 app.use(
   cookieSession({
