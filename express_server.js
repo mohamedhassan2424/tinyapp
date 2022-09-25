@@ -30,10 +30,6 @@ const users = {
   },
 };
 //user and the URLDatabase are found above
-
-//const id = Math.random().toString(36).substring(2, 8);
-// here is our generated 6 string letter and number
-//app.use(cookieParser());
 app.use(
   cookieSession({
     name: "cookieName",
@@ -52,7 +48,8 @@ app.get("/urls", (req, res) => {
   const storedUserID = req.session.user_id;
   const currentUser = users[storedUserID]
   if (!currentUser) {
-    return res.send("Suggest user to log in or register first");
+    return res.render('not_Logged_in', {user: users[storedUserID]})
+    //return res.send("Suggest user to log in or register first");
   }
 
   const userURL = urlsForUser(storedUserID,urlDatabase); // get the approaite URL for the approaite user
@@ -160,22 +157,27 @@ app.get("/login", (req, res) => {
 });
 app.post("/login", (req, res) => {
   // this is the part where the inputs for the login are stored and compared
+  //const storedUserID = req.session.user_id;
   const { email, password } = req.body;
   if (email.length === 0) {
     //checks these edge cases to see if it meets the criteria their are several more edge cases below
-    return res.send("400 Status Code");
+    return res.send("400 Status Code. The length of the email needs to be more than zero character Length.");
   }
   if (password.length === 0) {
-    return res.send("400 Status Code");
+    return res.send("400 Status Code.The length of the password needs to be more than zero character Length.");
   }
   const user = getUserByEmail(email, users);
+  //console.log("user",user)
   if (!user) {
-    return res.send("Staus Code 403. Email cannot be Found");
+    return res.send("Staus Code 403.The username typed cannot be found, please try and log in again.");
   }
   const checkingPassword = bcrypt.compareSync(password, user.password); // compares the password to the encription key if true than save the cookie and than redirect to the urls
   console.log(checkingPassword);
-  if (checkingPassword) {
-    req.session.user_id = id;
+  if(!checkingPassword){
+    res.send('Invlaid Password, Please Try and re-enter your password again.')
+  }
+  if (checkingPassword && user) {
+    req.session.user_id = user.id;
     res.redirect("/urls");
   }
 });
@@ -210,13 +212,13 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10); // encrypting it here
   console.log(hashedPassword);
   if (email.length === 0) {
-    return res.send("400 Status Code");
+    return res.send("400 Status Code : Please type in an accepatable Email with substantial chracter length to continue with registering.");
   }
   if (password.length === 0) {
-    return res.send("400 Status Code");
+    return res.send("400 Status Code : Please type in an accepatable password with substantial chracter length  continue with registering");
   }
   if (getUserByEmail(email, users)) {
-    return res.send("Staus Code 400. Email already exist");
+    return res.send("Staus Code 400. Email type in already exist");
   }
   users[id] = {
     // saving our keys and values in the users object, this is considered our database
