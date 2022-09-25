@@ -55,7 +55,7 @@ app.post("/urls", (req, res) => {
         longURL : longUrlValue,
         userID: storedUserID
     };
-    res.redirect(`/urls/${id}`);
+    res.redirect(`/urls`);
 });
 app.get("/urls/new", (req, res) => {
   // redirect to new page if this page url is met
