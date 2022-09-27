@@ -33,7 +33,6 @@ app.get("/urls", (req, res) => {
   }
 
   const userURL = urlsForUser(storedUserID,urlDatabase); // get the approaite URL for the approaite user
-  console.log("longURL" , userURL)
   const templateVars = {
     urls:userURL,
     users: users[storedUserID],
@@ -107,7 +106,6 @@ app.get("/urls/:id", (req, res) => {
   const inputedId=req.params.id
   const userIdValue=urlDatabase[inputedId].userId
   const existingURL = urlDatabase[storedUserID];
-  console.log("CHECKING IF THEY ARE THE SAME",existingURL === userIdValue)
   if (existingURL === userIdValue) {
     return res.send("User does not own that URL");
   } else {
@@ -154,12 +152,10 @@ app.post("/login", (req, res) => {
     return res.send("400 Status Code.The length of the password needs to be more than zero character Length.");
   }
   const user = getUserByEmail(email, users);
-  //console.log("user",user)
   if (!user) {
     return res.send("Staus Code 403.The username typed cannot be found, please try and log in again.");
   }
   const checkingPassword = bcrypt.compareSync(password, user.password); // compares the password to the encription key if true than save the cookie and than redirect to the urls
-  console.log(checkingPassword);
   if(!checkingPassword){
     res.send('Invlaid Password, Please Try and re-enter your password again.')
   }
@@ -197,7 +193,7 @@ app.post("/register", (req, res) => {
   const id = Math.random().toString(36).substring(2, 8);
   const { email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10); // encrypting it here
-  console.log(hashedPassword);
+
   if (email.length === 0) {
     return res.send("400 Status Code : Please type in an accepatable Email with substantial chracter length to continue with registering.");
   }
@@ -214,7 +210,6 @@ app.post("/register", (req, res) => {
     password: hashedPassword,
   };
   req.session.user_id = id;
-  console.log("USERS",users);
   res.redirect("/urls"); // after registering we redirect it back to the urls
 });
 app.listen(PORT, () => {
