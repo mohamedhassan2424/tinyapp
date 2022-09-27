@@ -78,6 +78,11 @@ app.post("/urls/:id/delete", (req, res) => {
   const storedUserID = req.session.user_id;
   const currentUser = users[storedUserID]
   const { id } = req.params;
+  const userIdValue=urlDatabase[id].userId
+  const existingURL = urlDatabase[storedUserID];
+  if(existingURL === userIdValue){
+    res.send("User is not the Owner, so they cannot delete")
+  }
   if (!currentUser) {
     return res.send("User Cannot shorten the URL");
  }
@@ -99,9 +104,11 @@ app.get("/urls/:id", (req, res) => {
   if (!currentUser) {
     return res.redirect("/login");
   }
-  
+  const inputedId=req.params.id
+  const userIdValue=urlDatabase[inputedId].userId
   const existingURL = urlDatabase[storedUserID];
-  if (existingURL ) {
+  console.log("CHECKING IF THEY ARE THE SAME",existingURL === userIdValue)
+  if (existingURL === userIdValue) {
     return res.send("User does not own that URL");
   } else {
     const templateVars = {
