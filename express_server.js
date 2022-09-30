@@ -42,7 +42,10 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   // after the get request is a post is needed to configure the data on the webpage and send the approaite messages
   const storedUserID = req.session.user_id;
+  console.log("users",users)
+  console.log("storedUserID",storedUserID)
   const currentUser = users[storedUserID]
+  console.log("currentUser",currentUser)
   if (!currentUser) {
      return res.send("User Cannot shorten the URL");
   }
@@ -58,16 +61,22 @@ app.post("/urls", (req, res) => {
 });
 app.get("/urls/new", (req, res) => {
   // redirect to new page if this page url is met
-  const id = Math.random().toString(36).substring(2, 8);
+  
   const storedUserID = req.session.user_id; // saving the cookie session here which is know encrpted
   const currentUser = users[storedUserID]
-  const templateVars = {
-    urls: urlDatabase[id],
-    users: users[storedUserID],
-  };
+  
   if (!currentUser) {
     res.redirect("/login");
   } else {
+    //const id = Math.random().toString(36).substring(2, 8);
+    /*const templateVars = {
+      urls: urlDatabase[id],
+      users: users[storedUserID],
+    };*/
+    const templateVars = {
+      urls: urlDatabase,
+      users: users[storedUserID],
+    };
     res.render("urls_new", templateVars); // rendering to the page for style and it can be seen in our templatevars ejs file
   }
 });
@@ -77,7 +86,7 @@ app.post("/urls/:id/delete", (req, res) => {
   const storedUserID = req.session.user_id;
   const currentUser = users[storedUserID]
   const { id } = req.params;
-  const userIdValue=urlDatabase[id].userId
+  const userIdValue=urlDatabase[id].userID
   const existingURL = urlDatabase[storedUserID];
   if(existingURL === userIdValue){
     res.send("User is not the Owner, so they cannot delete")
@@ -99,14 +108,15 @@ app.get("/u/:id", (req, res) => {
 });
 app.get("/urls/:id", (req, res) => {
   const storedUserID = req.session.user_id;
+  console.log("storedUserID",storedUserID)
   const currentUser = users[storedUserID]  
+  console.log("CurrentUser ",currentUser )
   if (!currentUser) {
     return res.redirect("/login");
   }
   const inputedId=req.params.id
-  const userIdValue=urlDatabase[inputedId].userId
-  const existingURL = urlDatabase[storedUserID];
-  if (existingURL === userIdValue) {
+  const existingURLID =urlDatabase[inputedId].userID;
+  if (existingURLID !== storedUserID) {
     return res.send("User does not own that URL");
   } else {
     const templateVars = {
@@ -203,6 +213,7 @@ app.post("/register", (req, res) => {
   if (getUserByEmail(email, users)) {
     return res.send("Staus Code 400. Email type in already exist");
   }
+  console.log("REGISTRATIONID",id)
   users[id] = {
     // saving our keys and values in the users object, this is considered our database
     id: id,
